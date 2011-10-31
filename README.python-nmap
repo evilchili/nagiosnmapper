@@ -1,0 +1,7 @@
+python-nmap is available under GPLv3 from:
+
+http://xael.org/norman/python/python-nmap/
+
+Included in this directory is a patch for python-nmap-0.1.4 
+which is required for use with nagiosnmapper.
+

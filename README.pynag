@@ -1,0 +1,18 @@
+pynag - Python Nagios Extension
+
+http://code.google.com/p/pynag/
+
+Source: http://code.google.com/p/pynag/source/checkout
+
+
+======================================================================
+
+NOTE!
+
+This is a modified version of pynag v0.4, distributed under the same 
+terms as nagiosnmapper itself; refer to LICENSE for details.
+
+The original distribution of pynag is licensed under GPLv2; refer 
+to the file LICENSE.pynag in this directory for complete terms.
+
+======================================================================

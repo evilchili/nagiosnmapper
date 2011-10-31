@@ -1,0 +1,135 @@
+Only in .: __init__.pyc
+diff -u /home/greg/python-nmap-0.1.4/nmap/nmap.py ./nmap.py
+--- /home/greg/python-nmap-0.1.4/nmap/nmap.py	2010-12-15 07:00:47.000000000 -0800
++++ ./nmap.py	2011-10-31 10:32:23.000000000 -0700
+@@ -81,6 +81,7 @@
+ import types
+ import xml.dom.minidom
+ import shlex
++import time
+ 
+ 
+ 
+@@ -183,10 +184,12 @@
+         assert type(arguments) in types.StringTypes, 'Wrong type for [arguments], should be a string [was {0}]'.format(type(arguments))
+ 
+         f_args = shlex.split(arguments)
+-        
++
+         # Launch scan
+         args = ['nmap', '-oX', '-', hosts] + ['-p', ports]*(ports!=None) + f_args
+ 
++        self._current_scan = ' '.join(args)
++
+         p = subprocess.Popen(args, bufsize=100000, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+ 
+         # wait until finished
+@@ -224,10 +227,8 @@
+         #  <times srtt="-1" rttvar="-1" to="1000000" />
+         #  </host>
+ 
+-
+-
+         scan_result = {}
+-        
++
+         dom = xml.dom.minidom.parseString(self._nmap_last_output)
+ 
+         # nmap command line
+@@ -247,7 +248,6 @@
+                 'services': dsci.getAttributeNode('services').value
+                 }
+ 
+-
+         scan_result['scan'] = {}
+         
+         for dhost in  dom.getElementsByTagName('host'):
+@@ -291,6 +291,35 @@
+ 
+                     scan_result['scan'][host][proto][port]['script'][script_id] = script_out
+ 
++            # collect OS detection information, if any (nmap -O)
++            for dos in dhost.getElementsByTagName('os'):
++                name=''
++                vendor=''
++                family=''
++                version=''
++                accuracy=0
++                for dosclass in dos.getElementsByTagName('osclass'):
++                    vendor   = dosclass.getAttributeNode('vendor')
++                    if vendor is not None:
++                        vendor = vendor.value
++                    family   = dosclass.getAttributeNode('osfamily')
++                    if family is not None:
++                        family = family.value
++                    version  = dosclass.getAttributeNode('osgen')
++                    if version is not None:
++                        version = version.value
++
++                for dosmatch in dos.getElementsByTagName('osmatch'):
++                    name     = dosmatch.getAttributeNode('name').value
++                    accuracy = int( dosmatch.getAttributeNode('accuracy').value )
++
++                scan_result['scan'][host]['os'] = {
++                    'name'     : name,
++                    'vendor'   : vendor,
++                    'family'   : family,
++                    'version'  : version,
++                    'accuracy' : accuracy,
++                }
+ 
+         self._scan_result = scan_result # store for later use
+         return scan_result
+@@ -368,6 +397,7 @@
+         detects nmap on the system and nmap version
+         may raise PortScannerError exception if nmap is not found in the path
+         """
++        self._scan_start_time = 0
+         self._process = None
+         self._nm = PortScanner()
+         return
+@@ -382,7 +412,7 @@
+         return
+ 
+ 
+-    def scan(self, hosts='127.0.0.1', ports=None, arguments='-sV', callback=None):
++    def scan(self, hosts='127.0.0.1', ports=None, arguments='-sV', callback=None, scan_start_callback=None, scan_end_callback=None):
+         """
+         Scan given hosts in a separate process and return host by host result using callback function
+ 
+@@ -400,13 +430,24 @@
+         assert type(callback) in (types.FunctionType, types.NoneType), 'Wrong type for [callback], should be a function or None [was {0}]'.format(type(callback))
+         
+         def scan_progressive(self, hosts, ports, arguments, callback):
++            scan_data = None
++            completed = 0
+             for host in self._nm.listscan(hosts):
++                if scan_start_callback is not None and callable(scan_start_callback):
++                    scan_start_callback(host)
+                 try:
++                    self._scan_start_time = time.time()
+                     scan_data = self._nm.scan(host, ports, arguments)
+-                except PortScannerError:
++                    completed  = completed + 1
++                except PortScannerError, e:
++                    sys.stderr.write( e.value )
+                     pass
++
+                 if callback is not None and callable(callback):
+                     callback(host, scan_data)
++
++            if scan_end_callback is not None and callable(scan_end_callback):
++                scan_end_callback(completed)
+             return
+ 
+         self._process = Process(
+@@ -479,6 +520,8 @@
+         lp = self.keys()
+         lp.remove('status')
+         lp.remove('hostname')
++        if 'os' in lp:
++            lp.remove('os')
+         lp.sort()
+         return lp
+ 
+Only in .: nmap.pyc

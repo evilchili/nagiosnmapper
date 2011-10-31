@@ -1,0 +1,56 @@
+************************************************************************
+WARNING!  This is WIP code, not suitable for production use.  If you
+trash your Nagios installation, don't come crying to me etc. etc.
+************************************************************************
+
+
+NAME:
+
+nagiosnmapper v0.1 
+
+SYNOPSIS:
+
+nagiosnmapper transforms the results of an nmap scan into Nagios 
+configuration files.  It is non-destructive (never overwrite existing 
+Nagios configs), highly configurable and very flexible.
+
+REQUIREMENTS:
+
+python 2.6+
+nmap
+nagios
+python-nmap v0.1.4
+python-nmap.patch
+
+USAGE:
+
+nagiosnmapper.py [options]
+
+Options:
+  -h, --help            show help message and exit
+  -v, --verbose         verbose output
+  -f FILE, 
+  --config_file=FILE    location of nagios.cfg; default: ./nagios.cfg
+  -t TARGET, 
+  --nmap_target=TARGET  host(s)/network(s) to scan; default: localhost
+  -o ARGS, 
+   --nmap_options=ARGS  nmap options **
+  -l FILE, 
+  --log=FILE            error and debug log file; default: 
+                          ./nagiosnmapper.log
+
+** default nmap scan options:
+    -O -sS -R --defeat-rst-ratelimit --host-timeout=300s -p1-49151
+
+TODO:
+
+Docs!
+
+AUTHOR:
+
+Greg Boyington <evilchili@gmail.com>
+
+LICENSE:
+
+Simplified BSD License; refer to LICENSE for details.
+
