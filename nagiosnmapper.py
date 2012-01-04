@@ -434,9 +434,9 @@ def sort_listscan( target ):
 	"""
 
 	sorted_targets = sort_ip_address_list( nm._nm.listscan( target ) )
-	
+
 	# weed out any host we're ignoring by doing a DNS lookup on each target
-	# and checking to see if it's listed in ingore_hosts.
+	# and checking to see if it's listed in ignore_hosts..
 	if ignored_hosts:
 		weeded = []
 		for addr in sorted_targets:
@@ -448,9 +448,12 @@ def sort_listscan( target ):
 			except:
 				pass
 			if name and name in ignored_hosts:
+				if config['verbose']:
+					sys.stdout.write( "skipping ignored host %s\n" % name )
 				continue
 			weeded.append( addr )
-			sorted_targets = weeded
+
+		sorted_targets = weeded
 
 	return sorted_targets
 
